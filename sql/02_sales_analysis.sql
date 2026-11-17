@@ -11,7 +11,7 @@ UNION ALL SELECT 'category_translation', COUNT(*) FROM category_translation;
 select count(*) AS "Total Orders" from orders;
 select sum(payment_value) as "Total Revenue" from order_payments;
 select count(*) as "Total Customers" from customers; 
-
+-- Headline numbers
 SELECT 
 	COUNT(DISTINCT o.order_id) AS total_orders,
 	ROUND(SUM(oi.price), 2) AS total_revenue,
@@ -20,7 +20,7 @@ fROM orders o
 JOIN order_items oi ON o.order_id = oi.order_id
 JOIN customers c ON o.customer_id = c.customer_id
 WHERE o.order_status NOT IN ('canceled', 'unavailable');
-
+-- Monthly revenue & orders
 SELECT
 	DATE_TRUNC('month', o.order_purchase_timestamp)::date AS month,
 	count(DISTINCT o.order_id) AS orders,
@@ -32,7 +32,7 @@ AND o.order_purchase_timestamp >= '2017-01-01'
 AND o.order_purchase_timestamp < '2018-09-01'
 GROUP BY 1
 ORDER BY 1;
-
+-- Top 10 categories by Revenue
 SELECT
 	COALESCE(t.product_category_name_english, p.product_category_name, 'unknown') AS category,
 	count(DISTINCT oi.order_id) as orders,

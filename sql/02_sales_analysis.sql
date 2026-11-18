@@ -45,3 +45,43 @@ WHERE o.order_status NOT IN ('canceled', 'unavailable')
 GROUP BY category
 ORDER BY revenue DESC
 LIMIT 10;
+
+--Revenue by customer state
+SELECT
+    c.customer_state,
+    COUNT(DISTINCT o.order_id) AS orders,
+    ROUND(SUM(oi.price), 2)    AS revenue,
+    ROUND(100.0 * SUM(oi.price) / SUM(SUM(oi.price)) OVER (), 1) AS pct_of_total
+FROM orders o
+JOIN order_items oi ON o.order_id = oi.order_id
+JOIN customers c    ON o.customer_id = c.customer_id
+WHERE o.order_status NOT IN ('canceled', 'unavailable')
+GROUP BY c.customer_state
+ORDER BY revenue DESC;
+
+--Payment type distribution 
+SELECT
+	payment_type,
+	COUNT(DISTINCT order_id) AS orders,
+	ROUND(SUM(payment_value), 2) AS total_paid,
+	ROUND(AVG(payment_value), 2) AS avg_payment,
+	ROUND(AVG(payment_installments), 1) AS avg_installments
+FROM order_payments
+GROUP BY payment_type
+ORDER BY orders DESC;
+--Summarizing orders count and avg items for the orders by their price range.
+WITH order_size AS (
+SELECT order_id, COUNT(*) AS items, SUM(price) AS order_value
+FROM order_items
+GROUP BY order_id
+)
+SELECT 
+	CASE WHEN order_value < 50 THEN '1. Under 50'
+		 WHEN order_value < 150 THEN '2. 50-150'
+		 WHEN order_value < 500 THEN '3. 150-500'
+		 ELSE '4. 500+' END AS value_band,
+		 COUNT(*) AS orders,
+		 ROUND(avg(items),2) AS avg_items
+	FROM order_size
+	GROUP BY 1
+	ORDER BY 1;
